@@ -1,1 +1,0 @@
-/home/luke/Thesis/SwarmExploration_ws/build/swarm_slam/config/turtlebot3_slam_config.lua
