@@ -1,0 +1,22 @@
+[0.468s] Invoking command in '/home/luke/Thesis/SwarmExploration_ws/src/swarm_slam': PYTHONPATH=/home/luke/Thesis/SwarmExploration_ws/build/swarm_slam/prefix_override:/home/luke/Thesis/SwarmExploration_ws/install/swarm_slam/lib/python3.8/site-packages:${PYTHONPATH} /usr/bin/python3 -W ignore:setup.py install is deprecated setup.py egg_info --egg-base ../../build/swarm_slam build --build-base /home/luke/Thesis/SwarmExploration_ws/build/swarm_slam/build install --record /home/luke/Thesis/SwarmExploration_ws/build/swarm_slam/install.log --single-version-externally-managed install_data
+[0.628s] running egg_info
+[0.628s] writing ../../build/swarm_slam/swarm_slam.egg-info/PKG-INFO
+[0.628s] writing dependency_links to ../../build/swarm_slam/swarm_slam.egg-info/dependency_links.txt
+[0.629s] writing entry points to ../../build/swarm_slam/swarm_slam.egg-info/entry_points.txt
+[0.629s] writing requirements to ../../build/swarm_slam/swarm_slam.egg-info/requires.txt
+[0.629s] writing top-level names to ../../build/swarm_slam/swarm_slam.egg-info/top_level.txt
+[0.650s] reading manifest file '../../build/swarm_slam/swarm_slam.egg-info/SOURCES.txt'
+[0.651s] writing manifest file '../../build/swarm_slam/swarm_slam.egg-info/SOURCES.txt'
+[0.651s] running build
+[0.651s] running build_py
+[0.651s] running install
+[0.651s] running install_lib
+[0.652s] running install_data
+[0.653s] copying resource/swarm_slam -> /home/luke/Thesis/SwarmExploration_ws/install/swarm_slam/share/ament_index/resource_index/packages
+[0.653s] running install_egg_info
+[0.654s] removing '/home/luke/Thesis/SwarmExploration_ws/install/swarm_slam/lib/python3.8/site-packages/swarm_slam-1.0.0-py3.8.egg-info' (and everything under it)
+[0.654s] Copying ../../build/swarm_slam/swarm_slam.egg-info to /home/luke/Thesis/SwarmExploration_ws/install/swarm_slam/lib/python3.8/site-packages/swarm_slam-1.0.0-py3.8.egg-info
+[0.654s] running install_scripts
+[0.665s] Installing multi_robot_slam script to /home/luke/Thesis/SwarmExploration_ws/install/swarm_slam/bin
+[0.665s] writing list of installed files to '/home/luke/Thesis/SwarmExploration_ws/build/swarm_slam/install.log'
+[0.676s] Invoked command in '/home/luke/Thesis/SwarmExploration_ws/src/swarm_slam' returned '0': PYTHONPATH=/home/luke/Thesis/SwarmExploration_ws/build/swarm_slam/prefix_override:/home/luke/Thesis/SwarmExploration_ws/install/swarm_slam/lib/python3.8/site-packages:${PYTHONPATH} /usr/bin/python3 -W ignore:setup.py install is deprecated setup.py egg_info --egg-base ../../build/swarm_slam build --build-base /home/luke/Thesis/SwarmExploration_ws/build/swarm_slam/build install --record /home/luke/Thesis/SwarmExploration_ws/build/swarm_slam/install.log --single-version-externally-managed install_data

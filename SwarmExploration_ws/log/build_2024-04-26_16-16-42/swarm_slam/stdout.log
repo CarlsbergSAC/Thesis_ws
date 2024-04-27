@@ -1,0 +1,15 @@
+running develop
+running egg_info
+writing swarm_slam.egg-info/PKG-INFO
+writing dependency_links to swarm_slam.egg-info/dependency_links.txt
+writing entry points to swarm_slam.egg-info/entry_points.txt
+writing requirements to swarm_slam.egg-info/requires.txt
+writing top-level names to swarm_slam.egg-info/top_level.txt
+reading manifest file 'swarm_slam.egg-info/SOURCES.txt'
+writing manifest file 'swarm_slam.egg-info/SOURCES.txt'
+running build_ext
+Creating /home/luke/Thesis/SwarmExploration_ws/install/swarm_slam/lib/python3.8/site-packages/swarm-slam.egg-link (link to .)
+Installing multi_robot_slam script to /home/luke/Thesis/SwarmExploration_ws/install/swarm_slam/bin
+
+Installed /home/luke/Thesis/SwarmExploration_ws/build/swarm_slam
+running symlink_data
