@@ -7,6 +7,8 @@ from nav_msgs.msg import OccupancyGrid
 import numpy as np
 import signal
 import logging
+from geometry_msgs.msg import TransformStamped
+from tf2_ros import StaticTransformBroadcaster
 
 def merge_maps(map1, map2):
     merged_map = OccupancyGrid()
@@ -51,19 +53,20 @@ class MergeMapNode(Node):
         self.subscription2 = self.create_subscription(OccupancyGrid, '/map2', self.map2_callback, 10)
         self.map1 = None
         self.map2 = None
-        
+
     def map1_callback(self, msg):
         self.map1 = msg
-        #self.get_logger().info('map1_callback')
+        self.get_logger().info('map1_callback')
         if self.map2 is not None:
             msg = merge_maps(self.map1, self.map2)
             self.publisher.publish(msg)
         else:
             self.publisher.publish(self.map1)
-            self.map2=self.map1
+            #self.map2=self.map1
     
     def map2_callback(self, msg):
         self.map2 = msg
+        #self.get_logger().info('map2_callback')
         # if self.map1 is not None:
         #     msg = merge_maps(self.map1, self.map2)
         #     self.publisher.publish(msg)
@@ -80,3 +83,10 @@ def main(args=None):
 
 if __name__ == '__main__':
     main()
+
+
+
+        self.publisher_tf = self.create_publisher(
+            TransformStamped,
+            '/tf',
+            10)
