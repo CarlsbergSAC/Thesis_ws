@@ -53,47 +53,6 @@ def generate_launch_description():
 
     for i in range(number_robots):
 
-        start_async_slam_toolbox_node = Node(
-            parameters=[
-            actual_params_file,
-            {'use_sim_time': use_sim_time}
-            ],
-            package='slam_toolbox',
-            executable='async_slam_toolbox_node',
-            name='slam_toolbox',
-            output='screen',
-            namespace=['robot_', str(i)],
-            remappings=[
-                ('/tf', 'tf'), 
-                ('/tf_static', 'tf_static'),
-                ('/scan', 'scan'),
-                ('/map', 'map'),
-                ('/map_metadata', 'map_metadata')
-            ]
-            )
-
-        ld.add_action(start_async_slam_toolbox_node)
-
-        # ## Map Merging
-        # config = os.path.join(get_package_share_directory("multirobot_map_merge"), "config", "params.yaml")
-        # remappings = [("/tf", "tf"), ("/tf_static", "tf_static")]
-
-        # map_merge_node = Node(
-        #     package="multirobot_map_merge",
-        #     name="map_merge",
-        #     namespace=['robot_', str(i)],
-        #     executable="map_merge",
-        #     parameters=[
-        #         config,
-        #         {"use_sim_time": True},
-        #         {"known_init_poses":False},
-        #     ],
-        #     output="screen",
-        #     remappings=remappings,
-        # )
-
-        # ld.add_action(map_merge_node)
-
         map_merge_node = Node(
             package='merge_map',
             executable='merge_map',
