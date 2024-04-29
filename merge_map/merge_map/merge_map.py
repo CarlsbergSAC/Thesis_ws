@@ -8,7 +8,8 @@ import numpy as np
 import signal
 import logging
 from geometry_msgs.msg import TransformStamped
-from tf2_ros import StaticTransformBroadcaster
+from tf2_msgs.msg import TFMessage
+
 
 def merge_maps(map1, map2):
     merged_map = OccupancyGrid()
@@ -53,16 +54,20 @@ class MergeMapNode(Node):
         self.subscription2 = self.create_subscription(OccupancyGrid, '/map2', self.map2_callback, 10)
         self.map1 = None
         self.map2 = None
+        
+        # publish map tf
+        self.publisher_tf = self.create_publisher(TFMessage, '/tf', 10)
 
     def map1_callback(self, msg):
         self.map1 = msg
-        self.get_logger().info('map1_callback')
+        #self.get_logger().info('map1_callback')
         if self.map2 is not None:
             msg = merge_maps(self.map1, self.map2)
             self.publisher.publish(msg)
         else:
             self.publisher.publish(self.map1)
             #self.map2=self.map1
+        #self.publish_map_tf()
     
     def map2_callback(self, msg):
         self.map2 = msg
@@ -71,22 +76,67 @@ class MergeMapNode(Node):
         #     msg = merge_maps(self.map1, self.map2)
         #     self.publisher.publish(msg)
 
+    def publish_map_tf(self):
+        tf_message = TFMessage()
+        static_transform = TransformStamped()
+        static_transform.header.stamp = self.get_clock().now().to_msg()
+        static_transform.header.frame_id = 'world'
+        static_transform.child_frame_id = 'merge_map'
+        static_transform.transform.translation.x = 0.0
+        static_transform.transform.translation.y = 0.0
+        static_transform.transform.translation.z = 0.0
+        static_transform.transform.rotation.x = 0.0
+        static_transform.transform.rotation.y = 0.0
+        static_transform.transform.rotation.z = 0.0
+        static_transform.transform.rotation.w = 1.0
+
+        tf_message.transforms.append(static_transform)
+        self.publisher_tf.publish(tf_message)
+        self.get_logger().info('tf2_pub')
+
+
+# class TF2Publisher(Node):
+#     def __init__(self):
+#         super().__init__('tf2_merge')
+#         self.publisher = StaticTransformBroadcaster(self)
+
+#     def publish_static_transform(self):
+#         static_transform = TransformStamped()
+#         static_transform.header.stamp = self.get_clock().now().to_msg()
+#         static_transform.header.frame_id = 'world'
+#         static_transform.child_frame_id = 'merge_map'
+#         static_transform.transform.translation.x = 0.0
+#         static_transform.transform.translation.y = 0.0
+#         static_transform.transform.translation.z = 0.0
+#         static_transform.transform.rotation.x = 0.0
+#         static_transform.transform.rotation.y = 0.0
+#         static_transform.transform.rotation.z = 0.0
+#         static_transform.transform.rotation.w = 1.0
+
+#         self.publisher.sendTransform(static_transform)
+#         self.get_logger().info('tf2_pub')
+
+
 def main(args=None):
     rclpy.init(args=args)
     merge_map_node = MergeMapNode()
+
+    # 
+    # tf2_publisher = TF2Publisher()
+
+    # # Publish static transform every second
+    # timer_period = 1.0  # seconds
+    # tf2_publisher.create_timer(timer_period, tf2_publisher.publish_static_transform)
+
+
     try:
         rclpy.spin(merge_map_node)
+        #rclpy.spin(tf2_publisher)
     except KeyboardInterrupt:
         pass
     merge_map_node.destroy_node()
+    tf2_publisher.destroy_node()
     rclpy.shutdown()
 
 if __name__ == '__main__':
     main()
-
-
-
-        self.publisher_tf = self.create_publisher(
-            TransformStamped,
-            '/tf',
-            10)
