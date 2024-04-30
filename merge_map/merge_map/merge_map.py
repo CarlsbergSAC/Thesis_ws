@@ -49,6 +49,8 @@ class MergeMapNode(Node):
         super().__init__('merge_map_node')
         self.get_logger().info('init')
     
+        self.number_robots  = self.get_parameter()
+
         self.publisher = self.create_publisher(OccupancyGrid, '/merge_map', 10)
         self.subscription1 = self.create_subscription(OccupancyGrid, '/map1', self.map1_callback, 10)
         self.subscription2 = self.create_subscription(OccupancyGrid, '/map2', self.map2_callback, 10)
@@ -67,7 +69,7 @@ class MergeMapNode(Node):
         else:
             self.publisher.publish(self.map1)
             #self.map2=self.map1
-        #self.publish_map_tf()
+        self.publish_map_tf()
     
     def map2_callback(self, msg):
         self.map2 = msg
@@ -95,39 +97,10 @@ class MergeMapNode(Node):
         self.get_logger().info('tf2_pub')
 
 
-# class TF2Publisher(Node):
-#     def __init__(self):
-#         super().__init__('tf2_merge')
-#         self.publisher = StaticTransformBroadcaster(self)
-
-#     def publish_static_transform(self):
-#         static_transform = TransformStamped()
-#         static_transform.header.stamp = self.get_clock().now().to_msg()
-#         static_transform.header.frame_id = 'world'
-#         static_transform.child_frame_id = 'merge_map'
-#         static_transform.transform.translation.x = 0.0
-#         static_transform.transform.translation.y = 0.0
-#         static_transform.transform.translation.z = 0.0
-#         static_transform.transform.rotation.x = 0.0
-#         static_transform.transform.rotation.y = 0.0
-#         static_transform.transform.rotation.z = 0.0
-#         static_transform.transform.rotation.w = 1.0
-
-#         self.publisher.sendTransform(static_transform)
-#         self.get_logger().info('tf2_pub')
-
 
 def main(args=None):
     rclpy.init(args=args)
     merge_map_node = MergeMapNode()
-
-    # 
-    # tf2_publisher = TF2Publisher()
-
-    # # Publish static transform every second
-    # timer_period = 1.0  # seconds
-    # tf2_publisher.create_timer(timer_period, tf2_publisher.publish_static_transform)
-
 
     try:
         rclpy.spin(merge_map_node)

@@ -108,14 +108,14 @@ def generate_launch_description():
 
         ld.add_action(map_merge_node)
 
-    # for publishing transform from 'world' to 'map'
-    map_tf_node = Node(
-        package='tf2_ros',
-        executable='static_transform_publisher',
-        output='screen',
-        name='world_map_tf_static_pub',
-        arguments=['0', '0', '0', '0', '0', '0', '1', 'world', 'merge_map']
-    )
-    ld.add_action(map_tf_node)
+    # # for publishing transform from 'world' to 'map'
+    # map_tf_node = Node(
+    #     package='tf2_ros',
+    #     executable='static_transform_publisher',
+    #     output='screen',
+    #     name='world_map_tf_static_pub',
+    #     arguments=['0', '0', '0', '0', '0', '0', '1', 'world', 'merge_map']
+    # )
+    # ld.add_action(map_tf_node)
 
     return ld
