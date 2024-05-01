@@ -94,19 +94,25 @@ def generate_launch_description():
 
         # ld.add_action(map_merge_node)
 
-        map_merge_node = Node(
-            package='merge_map',
-            executable='merge_map',
-            output='screen',
-            parameters=[{'use_sim_time': True}],
-            namespace=['robot_', str(i)],
-            remappings=[
-                ("/map1", "map"),
-                ("/map2", "/merge_map"),
-            ],
-        )
+    num_robots_arg= DeclareLaunchArgument(
+        'number_robots',
+        default_value=str(number_robots),
+        description='Number of robots to run'
+    )
 
-        ld.add_action(map_merge_node)
+    map_merge_node = Node(
+        package='merge_map',
+        executable='merge_map',
+        output='screen',
+        parameters=[{'use_sim_time': True, 'number_robots':str(number_robots)}],
+        #namespace=['robot_', str(i)],
+        remappings=[
+            #("/map1", "map"),
+            #("/merge_map", "merge_map"),
+        ],
+    )
+    ld.add_action(num_robots_arg)
+    ld.add_action(map_merge_node)
 
     # # for publishing transform from 'world' to 'map'
     # map_tf_node = Node(
@@ -114,7 +120,8 @@ def generate_launch_description():
     #     executable='static_transform_publisher',
     #     output='screen',
     #     name='world_map_tf_static_pub',
-    #     arguments=['0', '0', '0', '0', '0', '0', '1', 'world', 'merge_map']
+    #     arguments=['0', '0', '0', '0', '0', '0', '1', 'world', 'merge_map'],
+    #     remappings=[('/tf_static', '/tf')]
     # )
     # ld.add_action(map_tf_node)
 

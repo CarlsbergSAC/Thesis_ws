@@ -5,10 +5,14 @@ import rclpy
 from rclpy.node import Node
 from nav_msgs.msg import OccupancyGrid
 import numpy as np
-import signal
 import logging
 from geometry_msgs.msg import TransformStamped
 from tf2_msgs.msg import TFMessage
+import sys
+from queue import Queue
+from threading import Lock
+import threading
+import time
 
 
 def merge_maps(map1, map2):
@@ -48,53 +52,89 @@ class MergeMapNode(Node):
     def __init__(self):
         super().__init__('merge_map_node')
         self.get_logger().info('init')
-    
-        self.number_robots  = self.get_parameter()
 
+        # get input parameters
+        self.declare_parameter("number_robots")
+        self.number_robots = int(self.get_parameter('number_robots').value)
+
+        self.get_logger().info(str(self.number_robots))
+
+        # publisher for merge_map
         self.publisher = self.create_publisher(OccupancyGrid, '/merge_map', 10)
-        self.subscription1 = self.create_subscription(OccupancyGrid, '/map1', self.map1_callback, 10)
-        self.subscription2 = self.create_subscription(OccupancyGrid, '/map2', self.map2_callback, 10)
-        self.map1 = None
-        self.map2 = None
+
+        # make subscription to all robots map
+        self.map_subscription = []
+        for i in range(self.number_robots):
+            self.map_subscription.append(self.create_subscription(OccupancyGrid, '/robot_'+str(i)+'/map', self.map_callback, 10))
+
+        self.merge_map = None
         
         # publish map tf
         self.publisher_tf = self.create_publisher(TFMessage, '/tf', 10)
 
-    def map1_callback(self, msg):
-        self.map1 = msg
-        #self.get_logger().info('map1_callback')
-        if self.map2 is not None:
-            msg = merge_maps(self.map1, self.map2)
-            self.publisher.publish(msg)
-        else:
-            self.publisher.publish(self.map1)
-            #self.map2=self.map1
-        self.publish_map_tf()
-    
-    def map2_callback(self, msg):
-        self.map2 = msg
-        #self.get_logger().info('map2_callback')
-        # if self.map1 is not None:
-        #     msg = merge_maps(self.map1, self.map2)
-        #     self.publisher.publish(msg)
+        # Queue and lock for map processing
+        self.map_queue = Queue()
+        self.map_processing_lock = Lock()
+
+        # Start tf publishing thread
+        self.tf_thread = threading.Thread(target=self.publish_map_tf)
+        self.tf_thread.daemon = True  # Make sure the thread exits when the main thread exits
+        self.tf_thread.start()
+
+        # Start map processing thread
+        self.process_maps_thread = threading.Thread(target=self.process_maps)
+        self.process_maps_thread.daemon = True  # Make sure the thread exits when the main thread exits
+        self.process_maps_thread.start()
+
+    def map_callback(self, msg):
+        map = msg
+        self.map_queue.put(map)
+        self.get_logger().info('map_callback_end')
+
+    def process_maps(self):
+        #self.publish_map_tf()   
+        while rclpy.ok():
+            if not self.map_queue.empty():
+                map = self.map_queue.get()
+            else:
+                time.sleep(0.1)  # Wait for new maps with a 100ms timeout
+                continue
+
+            if self.merge_map is not None:
+                self.merge_map = merge_maps(self.merge_map, map)
+                self.publisher.publish(self.merge_map)
+            else:
+                self.merge_map = map
+                self.publisher.publish(self.merge_map)
+            
+
+            self.get_logger().info('map_published')
 
     def publish_map_tf(self):
-        tf_message = TFMessage()
-        static_transform = TransformStamped()
-        static_transform.header.stamp = self.get_clock().now().to_msg()
-        static_transform.header.frame_id = 'world'
-        static_transform.child_frame_id = 'merge_map'
-        static_transform.transform.translation.x = 0.0
-        static_transform.transform.translation.y = 0.0
-        static_transform.transform.translation.z = 0.0
-        static_transform.transform.rotation.x = 0.0
-        static_transform.transform.rotation.y = 0.0
-        static_transform.transform.rotation.z = 0.0
-        static_transform.transform.rotation.w = 1.0
+        while rclpy.ok():
+            tf_message = TFMessage()
 
-        tf_message.transforms.append(static_transform)
-        self.publisher_tf.publish(tf_message)
-        self.get_logger().info('tf2_pub')
+            # Create a non-static transform
+            transform = TransformStamped()
+            transform.header.stamp = self.get_clock().now().to_msg()
+            transform.header.frame_id = 'world'
+            transform.child_frame_id = 'merge_map'
+            transform.transform.translation.x = 0.0
+            transform.transform.translation.y = 0.0
+            transform.transform.translation.z = 0.0
+            transform.transform.rotation.x = 0.0
+            transform.transform.rotation.y = 0.0
+            transform.transform.rotation.z = 0.0
+            transform.transform.rotation.w = 1.0
+
+            tf_message.transforms.append(transform)
+
+        
+            self.publisher_tf.publish(tf_message)
+            #self.get_logger().info('tf2_pub')
+            time.sleep(0.1) 
+
+
 
 
 
@@ -104,11 +144,15 @@ def main(args=None):
 
     try:
         rclpy.spin(merge_map_node)
-        #rclpy.spin(tf2_publisher)
+                # Spin the node in its own thread
+        # node_thread = threading.Thread(target=lambda: rclpy.spin(merge_map_node))
+        # node_thread.start()
+
+        # # Wait for the node thread to finish
+        # node_thread.join()
     except KeyboardInterrupt:
         pass
     merge_map_node.destroy_node()
-    tf2_publisher.destroy_node()
     rclpy.shutdown()
 
 if __name__ == '__main__':
