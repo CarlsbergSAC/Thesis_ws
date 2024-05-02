@@ -89,7 +89,7 @@ class MergeMapNode(Node):
     def map_callback(self, msg):
         map = msg
         self.map_queue.put(map)
-        self.get_logger().info('map_callback_end')
+        self.get_logger().debug('map_callback_end')
 
     def process_maps(self):
         #self.publish_map_tf()   
@@ -108,7 +108,7 @@ class MergeMapNode(Node):
                 self.publisher.publish(self.merge_map)
             
 
-            self.get_logger().info('map_published')
+            self.get_logger().debug('map_published')
 
     def publish_map_tf(self):
         while rclpy.ok():

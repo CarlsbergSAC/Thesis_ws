@@ -1,7 +1,8 @@
 import os
 import sys
 from launch import LaunchDescription
-from launch.actions import DeclareLaunchArgument, LogInfo
+from launch.actions import DeclareLaunchArgument, LogInfo, IncludeLaunchDescription, DeclareLaunchArgument
+from launch.launch_description_sources import PythonLaunchDescriptionSource
 from launch.conditions import UnlessCondition
 from launch.substitutions import LaunchConfiguration, PythonExpression
 from launch_ros.actions import Node
@@ -74,26 +75,40 @@ def generate_launch_description():
 
         ld.add_action(start_async_slam_toolbox_node)
 
-        # ## Map Merging
-        # config = os.path.join(get_package_share_directory("multirobot_map_merge"), "config", "params.yaml")
-        # remappings = [("/tf", "tf"), ("/tf_static", "tf_static")]
 
-        # map_merge_node = Node(
-        #     package="multirobot_map_merge",
-        #     name="map_merge",
-        #     namespace=['robot_', str(i)],
-        #     executable="map_merge",
-        #     parameters=[
-        #         config,
-        #         {"use_sim_time": True},
-        #         {"known_init_poses":False},
-        #     ],
-        #     output="screen",
-        #     remappings=remappings,
-        # )
+        remappings = [("/tf", "tf"), ("/tf_static", "tf_static"), ("/map", "map"), ('/map_metadata', 'map_metadata')]
+        config = os.path.join(get_package_share_directory("explore_lite"), "config", "params.yaml")
 
-        # ld.add_action(map_merge_node)
+        explore_node = Node(
+            package="explore_lite",
+            name="explore_node",
+            namespace=['robot_', str(i)],
+            executable="explore",
+            parameters=[config, {"use_sim_time": use_sim_time}],
+            output="screen",
+            remappings=remappings,
+            # arguments=['--ros-args', '--log-level', 'DEBUG' ]
+        )
+        ld.add_action(explore_node)
 
+        # Define the namespace launch configuration
+        namespace = LaunchConfiguration(['robot_', str(i)], default='')
+        print(namespace)
+        nav2_dir = get_package_share_directory('swarm_slam')
+
+        nav2_node = IncludeLaunchDescription(
+            PythonLaunchDescriptionSource(os.path.join(nav2_dir, 'navigation.launch.py')),
+            launch_arguments={
+                'namespace': ['robot_', str(i)],
+                'use_namespace': 'true',
+                'use_sim_time': 'true',
+                }.items()
+        )
+        ld.add_action(nav2_node)
+
+
+
+    # map merge node
     num_robots_arg= DeclareLaunchArgument(
         'number_robots',
         default_value=str(number_robots),
@@ -114,6 +129,7 @@ def generate_launch_description():
     ld.add_action(num_robots_arg)
     ld.add_action(map_merge_node)
 
+
     # # for publishing transform from 'world' to 'map'
     # map_tf_node = Node(
     #     package='tf2_ros',
@@ -124,5 +140,8 @@ def generate_launch_description():
     #     remappings=[('/tf_static', '/tf')]
     # )
     # ld.add_action(map_tf_node)
+
+
+    
 
     return ld
