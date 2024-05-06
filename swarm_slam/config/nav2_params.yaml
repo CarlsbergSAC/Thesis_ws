@@ -16,3 +16,7 @@ bt_navigator:
     - nav2_recovery_node_bt_node
     - nav2_pipeline_sequence_bt_node
     - nav2_round_robin_node_bt_node
+    enable_groot_monitoring: false
+
+
+ 

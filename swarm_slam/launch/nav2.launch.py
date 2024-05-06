@@ -20,8 +20,6 @@ def generate_launch_description():
         if arg.startswith("number_robots:="):  # The number of robots to spawn in the world
             number_robots = int(arg.split(":=")[1])
         
-
-
     ld = LaunchDescription()
 
     for i in range(number_robots):
@@ -40,7 +38,10 @@ def generate_launch_description():
         )
         ld.add_action(nav2_node)
 
-
-
+    groot = DeclareLaunchArgument(
+            'enable_groot_monitoring', default_value='false',
+            description='something to do with bt_navigation')
+    
+    ld.add_action(groot)
 
     return ld

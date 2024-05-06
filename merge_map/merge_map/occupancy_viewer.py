@@ -5,6 +5,9 @@ from nav_msgs.msg import OccupancyGrid, Odometry
 from cv_bridge import CvBridge
 import cv2
 import numpy as np
+import time
+from threading import Lock
+import threading
 
 def occupancy_grid_to_cv2_image(occupancy_grid_msg):
     # Extract data from the OccupancyGrid message
@@ -43,53 +46,78 @@ class OccupancyViewer(Node):
 
         # robot positions
         self.robot_positions = {}
-        self.odom_subscription = self.create_subscription(
-            Odometry,
-            '/robot_0/odom',  # Change this to the correct Odometry topic name
-            self.odometry_callback,
-            10)
+
+        for i in range(self.number_robots):
+            subscription = self.create_subscription(
+                Odometry,
+                f'/robot_{i}/odom',  # Adjust topic name pattern as per your setup
+                lambda msg, i=i: self.odometry_callback(msg, i),  # Pass i to callback using lambda
+                10)
+
+        # for odom and map data
+        self.lock_pos = threading.Lock()  # Mutex lock for thread safety
+        self.lock_grid = threading.Lock()
+
+        # map image publishing thread
+        self.process_maps_thread = threading.Thread(target=self.update_display)
+        self.process_maps_thread.daemon = True  # Make sure the thread exits when the main thread exits
+        self.process_maps_thread.start()
 
 
     def occupancy_grid_callback(self, msg):
         # Convert occupancy grid message to an OpenCV image
-        self.occupancy_grid = msg
+        with self.lock_grid:
+            self.occupancy_grid = msg
         
-        self.update_display()
 
-    def odometry_callback(self, msg):
+    def odometry_callback(self, msg, robot_index):
         # Extract robot's position from the Odometry message
         x = msg.pose.pose.position.x
         y = msg.pose.pose.position.y
-
-        self.robot_positions[0] = (int(x), int(y))
+        with self.lock_pos:
+            self.robot_positions[robot_index] = (x, y)
         
 
     def update_display(self):
         # Display the image
          # Convert occupancy grid message to an OpenCV image
-        if self.occupancy_grid is not None:
-            cv_image = occupancy_grid_to_cv2_image(self.occupancy_grid)
+        while rclpy.ok():
 
-            for pos in self.robot_positions:
-                # convert x,y to pixel location
-                x,y = self.convert_robot_pos(self.robot_positions[pos])
-                self.get_logger().info(f'x: {x}, y: {y}')
-                cv2.circle(cv_image, (x,y), 5, (0, 0, 255), -1)
+            with self.lock_pos:
+                robot_pos = self.robot_positions
+            with self.lock_grid:
+                grid = self.occupancy_grid
+
+            if grid is not None:
+                cv_image = occupancy_grid_to_cv2_image(grid)
+
+                for pos in robot_pos:
+                    # convert x,y to pixel location
+                    x,y = self.convert_robot_pos(robot_pos[pos])
+          
+                    cv2.circle(cv_image, (x,y), 5, (0, 0, 255), -1)
 
 
-            cv_image = cv2.resize(cv_image, (800, 800))
-            cv2.imshow('Occupancy Grid', cv_image)
-            cv2.waitKey(1)  # Refresh display
+                cv_image = cv2.resize(cv_image, (800, 800))
+                cv2.imshow('Occupancy Grid', cv_image)
+                cv2.waitKey(1)  # Refresh display
+
+                #self.get_logger().info(f'x: {x}, y: {y}')
+
+            time.sleep(0.5)
 
     def convert_robot_pos(self, pos):
+        
+        with self.lock_grid:
+            grid = self.occupancy_grid
 
         x_world, y_world = pos
         # Convert to grid indices
-        x_grid = int((x_world - self.occupancy_grid.info.origin.position.x) / self.occupancy_grid.info.resolution)
-        y_grid = int((y_world - self.occupancy_grid.info.origin.position.y) / self.occupancy_grid.info.resolution)
+        x_grid = int((x_world - grid.info.origin.position.x) / grid.info.resolution)
+        y_grid = int((y_world - grid.info.origin.position.y) / grid.info.resolution)
         # Ensure position is within grid bounds
-        x_grid = max(0, min(x_grid, self.occupancy_grid.info.width - 1))
-        y_grid = max(0, min(y_grid, self.occupancy_grid.info.height - 1))
+        x_grid = max(0, min(x_grid, grid.info.width - 1))
+        y_grid = max(0, min(y_grid, grid.info.height - 1))
 
         return x_grid, y_grid
 
@@ -97,7 +125,13 @@ class OccupancyViewer(Node):
 def main(args=None):
     rclpy.init(args=args)
     occupancy_viewer_node = OccupancyViewer()
-    rclpy.spin(occupancy_viewer_node)
+
+    try:
+        rclpy.spin(occupancy_viewer_node)
+    
+    except KeyboardInterrupt:
+        pass
+    
     # Destroy OpenCV windows upon shutdown
     cv2.destroyAllWindows()
     occupancy_grid_subscriber.destroy_node()
