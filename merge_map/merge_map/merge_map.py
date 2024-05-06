@@ -131,11 +131,12 @@ class MergeMapNode(Node):
 
         
             self.publisher_tf.publish(tf_message)
+
+            # if self.merge_map is not None:
+            #     self.publisher.publish(self.merge_map)
+
             #self.get_logger().info('tf2_pub')
             time.sleep(0.1) 
-
-
-
 
 
 def main(args=None):

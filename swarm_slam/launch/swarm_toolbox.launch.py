@@ -76,36 +76,24 @@ def generate_launch_description():
         ld.add_action(start_async_slam_toolbox_node)
 
 
-        remappings = [("/tf", "tf"), ("/tf_static", "tf_static"), ("/map", "map"), ('/map_metadata', 'map_metadata')]
-        config = os.path.join(get_package_share_directory("explore_lite"), "config", "params.yaml")
+        # remappings = [("/tf", "tf"), ("/tf_static", "tf_static"), ("/map", "map"), ('/map_metadata', 'map_metadata')]
+        # config = os.path.join(get_package_share_directory("explore_lite"), "config", "params.yaml")
 
-        explore_node = Node(
-            package="explore_lite",
-            name="explore_node",
-            namespace=['robot_', str(i)],
-            executable="explore",
-            parameters=[config, {"use_sim_time": use_sim_time}],
-            output="screen",
-            remappings=remappings,
-            # arguments=['--ros-args', '--log-level', 'DEBUG' ]
-        )
-        ld.add_action(explore_node)
+        # explore_node = Node(
+        #     package="explore_lite",
+        #     name="explore_node",
+        #     namespace=['robot_', str(i)],
+        #     executable="explore",
+        #     parameters=[config, {"use_sim_time": use_sim_time}],
+        #     output="screen",
+        #     remappings=remappings,
+        #     # arguments=['--ros-args', '--log-level', 'DEBUG' ]
+        # )
+        # ld.add_action(explore_node)
 
-        # Define the namespace launch configuration
-        namespace = LaunchConfiguration(['robot_', str(i)], default='')
-        print(namespace)
-        nav2_dir = get_package_share_directory('swarm_slam')
-
-        nav2_node = IncludeLaunchDescription(
-            PythonLaunchDescriptionSource(os.path.join(nav2_dir, 'navigation.launch.py')),
-            launch_arguments={
-                'namespace': ['robot_', str(i)],
-                'use_namespace': 'true',
-                'use_sim_time': 'true',
-                }.items()
-        )
-        ld.add_action(nav2_node)
-
+        # # Define the namespace launch configuration
+        # namespace = LaunchConfiguration(['robot_', str(i)], default='')
+        # print(namespace)
 
 
     # map merge node
@@ -130,17 +118,19 @@ def generate_launch_description():
     ld.add_action(map_merge_node)
 
 
-    # # for publishing transform from 'world' to 'map'
-    # map_tf_node = Node(
-    #     package='tf2_ros',
-    #     executable='static_transform_publisher',
+    # occupancy_viewer_node = Node(
+    #     package='merge_map',
+    #     executable='occupancy_viewer',
     #     output='screen',
-    #     name='world_map_tf_static_pub',
-    #     arguments=['0', '0', '0', '0', '0', '0', '1', 'world', 'merge_map'],
-    #     remappings=[('/tf_static', '/tf')]
+    #     parameters=[{'use_sim_time': True}],
+    #     #namespace=['robot_', str(i)],
+    #     remappings=[
+    #         #("/map1", "map"),
+    #         #("/merge_map", "merge_map"),
+    #     ],
     # )
-    # ld.add_action(map_tf_node)
 
+    # ld.add_action(occupancy_viewer_node)
 
     
 

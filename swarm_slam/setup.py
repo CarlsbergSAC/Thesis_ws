@@ -26,7 +26,8 @@ setup(
     tests_require=['pytest'],
     entry_points={
         'console_scripts': [
-            'multi_robot_slam = multi_robot_slam.multi_robot_slam_node:main'
+            'multi_robot_slam = multi_robot_slam.multi_robot_slam_node:main',
+            'explore = swarm_slam.wavefront_frontier:main'
         ],
     },
 )
