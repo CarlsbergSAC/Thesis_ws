@@ -46,6 +46,10 @@ def merge_maps(map1, map2):
             merged_i = merged_x + merged_y * merged_map.info.width
             if merged_map.data[merged_i] == -1:
                 merged_map.data[merged_i] = map2.data[i]
+            elif map2.data[i] != -1 and map2.data[i] != merged_map.data[merged_i]:
+                merged_map.data[merged_i] = int(0.9*merged_map.data[merged_i] + 0.1*map2.data[i])
+
+
     return merged_map
 
 class MergeMapNode(Node):
@@ -68,6 +72,7 @@ class MergeMapNode(Node):
             self.map_subscription.append(self.create_subscription(OccupancyGrid, '/robot_'+str(i)+'/map', self.map_callback, 10))
 
         self.merge_map = None
+        self.create_empty_map()
         
         # publish map tf
         self.publisher_tf = self.create_publisher(TFMessage, '/tf', 10)
@@ -138,6 +143,23 @@ class MergeMapNode(Node):
             #self.get_logger().info('tf2_pub')
             time.sleep(0.1) 
 
+    # creates empty grid for whole map (slows down calculations, but makes display better)
+    def create_empty_map(self):
+        merged_map = OccupancyGrid()
+        merged_map.header.frame_id = 'merge_map'
+        min_x = -11.0
+        min_y = -11.0
+        max_x = 11.0
+        max_y = 11.0
+        merged_map.info.origin.position.x = min_x
+        merged_map.info.origin.position.y = min_y
+        merged_map.info.resolution = 1.0
+        merged_map.info.width = int(np.ceil((max_x - min_x) / merged_map.info.resolution))
+        merged_map.info.height = int(np.ceil((max_y - min_y) / merged_map.info.resolution))
+        merged_map.data = [-1] * (merged_map.info.width * merged_map.info.height)
+
+        self.merge_map = merged_map
+        return
 
 def main(args=None):
     rclpy.init(args=args)

@@ -27,7 +27,7 @@ def generate_launch_description():
         parameters=[{'use_sim_time': True, 'number_robots':str(number_robots)}],
         #namespace=['robot_', str(i)],
         remappings=[
-            #("/map1", "map"),
+            #("/odom", "odom"),
             #("/merge_map", "merge_map"),
         ],
     )
