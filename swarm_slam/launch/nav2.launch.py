@@ -38,10 +38,10 @@ def generate_launch_description():
         )
         ld.add_action(nav2_node)
 
-    groot = DeclareLaunchArgument(
-            'enable_groot_monitoring', default_value='false',
-            description='something to do with bt_navigation')
+    # groot = DeclareLaunchArgument(
+    #         'enable_groot_monitoring', default_value='false',
+    #         description='something to do with bt_navigation')
     
-    ld.add_action(groot)
+    # ld.add_action(groot)
 
     return ld

@@ -147,10 +147,10 @@ class MergeMapNode(Node):
     def create_empty_map(self):
         merged_map = OccupancyGrid()
         merged_map.header.frame_id = 'merge_map'
-        min_x = -11.0
-        min_y = -11.0
-        max_x = 11.0
-        max_y = 11.0
+        min_x = -6.0
+        min_y = -6.0
+        max_x = 6.0
+        max_y = 6.0
         merged_map.info.origin.position.x = min_x
         merged_map.info.origin.position.y = min_y
         merged_map.info.resolution = 1.0

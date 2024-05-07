@@ -8,6 +8,8 @@ import numpy as np
 import time
 from threading import Lock
 import threading
+import os
+import datetime
 
 def occupancy_grid_to_cv2_image(occupancy_grid_msg):
     # Extract data from the OccupancyGrid message
@@ -27,6 +29,23 @@ def occupancy_grid_to_cv2_image(occupancy_grid_msg):
     occupancy_grid_image[occupancy_grid == -1] = [128, 128, 128]  # Gray for unknown space
 
     return occupancy_grid_image
+
+def white_spaces(occupancy_grid_msg):
+    # Extract data from the OccupancyGrid message
+    width = occupancy_grid_msg.info.width
+    height = occupancy_grid_msg.info.height
+    data = occupancy_grid_msg.data
+    resolution = occupancy_grid_msg.info.resolution
+
+    # Reshape the data into a 2D numpy array
+    #occupancy_grid = np.array(data).reshape((height, width))
+    arr = np.array(data) < 50
+    arr = np.array(data) >=0
+
+    # Count white spaces
+    num_white_spaces = np.sum(arr)
+
+    return num_white_spaces
 
 class OccupancyViewer(Node):
     def __init__(self):
@@ -57,6 +76,13 @@ class OccupancyViewer(Node):
         # for odom and map data
         self.lock_pos = threading.Lock()  # Mutex lock for thread safety
         self.lock_grid = threading.Lock()
+
+
+        # Initialize VideoWriter
+        self.video_writer = cv2.VideoWriter('video_out.avi', cv2.VideoWriter_fourcc(*'DIVX'), 30, (800, 800))
+        self.total_white_space = 35544
+        self.start_time = None
+
 
         # map image publishing thread
         self.process_maps_thread = threading.Thread(target=self.update_display)
@@ -91,20 +117,37 @@ class OccupancyViewer(Node):
             if grid is not None:
                 cv_image = occupancy_grid_to_cv2_image(grid)
 
+                spaces = white_spaces(grid)
+                if spaces > self.total_white_space:
+                    spaces = self.total_white_space
+
+                if spaces/self.total_white_space > 0.1 and self.start_time is None:
+                    self.start_time = datetime.datetime.now()
+
+                if self.start_time is None:
+                    time_spent = 0
+                else:
+                    time_spent = datetime.datetime.now() - self.start_time
+                 
+
                 for pos in robot_pos:
                     # convert x,y to pixel location
                     x,y = self.convert_robot_pos(robot_pos[pos])
           
-                    cv2.circle(cv_image, (x,y), 5, (0, 0, 255), -1)
+                    cv2.circle(cv_image, (x,y), 3, (0, 0, 255), -1)
 
-
+                
                 cv_image = cv2.resize(cv_image, (800, 800))
+                self.write_text_on_image(cv_image, spaces, time_spent)
                 cv2.imshow('Occupancy Grid', cv_image)
                 cv2.waitKey(1)  # Refresh display
 
-                #self.get_logger().info(f'x: {x}, y: {y}')
+                self.video_writer.write(cv_image)
+                #self.get_logger().info(f'Area Explored: {spaces}')
 
             time.sleep(0.5)
+        
+        
 
     def convert_robot_pos(self, pos):
         
@@ -121,6 +164,22 @@ class OccupancyViewer(Node):
 
         return x_grid, y_grid
 
+    def write_text_on_image(self, image, spaces, time):
+        # Text to be written
+        text1 = f"Explored: {round(spaces*100/self.total_white_space, 2)}%"
+        text2 = f"Time (s): {time}"
+        # Position to write the text (x, y)
+        position = (3, 25)
+
+        # Font settings
+        font = cv2.FONT_HERSHEY_SIMPLEX
+        font_scale = 1
+        font_color = (255, 255, 255)  # White color
+        thickness = 2  # Thickness of the text
+
+        # Write text onto the image
+        cv2.putText(image, text1, position, font, font_scale, font_color, thickness)
+        cv2.putText(image, text2, (3,55), font, font_scale, font_color, thickness)
 
 def main(args=None):
     rclpy.init(args=args)
@@ -133,8 +192,9 @@ def main(args=None):
         pass
     
     # Destroy OpenCV windows upon shutdown
+    occupancy_viewer_node.video_writer.release()
     cv2.destroyAllWindows()
-    occupancy_grid_subscriber.destroy_node()
+    occupancy_viewer_node.destroy_node()
     rclpy.shutdown()
 
 if __name__ == '__main__':

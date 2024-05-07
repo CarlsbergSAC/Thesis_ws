@@ -49,7 +49,8 @@ def generate_launch_description():
     remappings = [('/tf', 'tf'),
                   ('/tf_static', 'tf_static'),
                   ('/map', 'map'),
-                  ('/odom', 'odom')]
+                  ('/odom', 'odom'),
+                  ('/scan', 'scan')]
 
     # Create our own temporary YAML files that include substitutions
     param_substitutions = {
@@ -71,7 +72,6 @@ def generate_launch_description():
         DeclareLaunchArgument(
             'enable_groot_monitoring', default_value='false',
             description='something to do with bt_navigation'),
-    
   
         DeclareLaunchArgument(
             'namespace', default_value='',
@@ -132,7 +132,7 @@ def generate_launch_description():
             executable='bt_navigator',
             name='bt_navigator',
             output='screen',
-            parameters=[configured_params],
+            parameters=[configured_params, {'enable_groot_monitoring': False}],
             remappings=remappings,
             namespace=namespace),
 
