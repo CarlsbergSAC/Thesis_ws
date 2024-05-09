@@ -50,7 +50,9 @@ def generate_launch_description():
                   ('/tf_static', 'tf_static'),
                   ('/map', 'map'),
                   ('/odom', 'odom'),
-                  ('/scan', 'scan')]
+                  ('/scan', 'scan'),
+                  #('cmd_vel', 'unsafe_cmd_vel')
+                  ]
 
     # Create our own temporary YAML files that include substitutions
     param_substitutions = {

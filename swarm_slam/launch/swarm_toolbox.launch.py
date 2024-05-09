@@ -76,26 +76,6 @@ def generate_launch_description():
         ld.add_action(start_async_slam_toolbox_node)
 
 
-        # remappings = [("/tf", "tf"), ("/tf_static", "tf_static"), ("/map", "map"), ('/map_metadata', 'map_metadata')]
-        # config = os.path.join(get_package_share_directory("explore_lite"), "config", "params.yaml")
-
-        # explore_node = Node(
-        #     package="explore_lite",
-        #     name="explore_node",
-        #     namespace=['robot_', str(i)],
-        #     executable="explore",
-        #     parameters=[config, {"use_sim_time": use_sim_time}],
-        #     output="screen",
-        #     remappings=remappings,
-        #     # arguments=['--ros-args', '--log-level', 'DEBUG' ]
-        # )
-        # ld.add_action(explore_node)
-
-        # # Define the namespace launch configuration
-        # namespace = LaunchConfiguration(['robot_', str(i)], default='')
-        # print(namespace)
-
-
     # map merge node
     num_robots_arg= DeclareLaunchArgument(
         'number_robots',

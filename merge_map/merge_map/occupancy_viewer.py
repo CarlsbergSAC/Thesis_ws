@@ -79,7 +79,7 @@ class OccupancyViewer(Node):
 
 
         # Initialize VideoWriter
-        self.video_writer = cv2.VideoWriter('video_out.avi', cv2.VideoWriter_fourcc(*'DIVX'), 30, (800, 800))
+        self.video_writer = cv2.VideoWriter('video_out.mp4', cv2.VideoWriter_fourcc(*'DIVX'), 30, (800, 800))
         self.total_white_space = 35544
         self.start_time = None
 

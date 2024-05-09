@@ -34,6 +34,8 @@ def generate_launch_description():
         ('/map', 'map')
         ]
 
+    config = os.path.join(get_package_share_directory("explore_lite"), "config", "params.yaml")
+
     for i in range(number_robots):
         explore_node = Node(
             package="nav2_wfd",
@@ -47,5 +49,21 @@ def generate_launch_description():
         )
 
         ld.add_action(explore_node)
+
+
+        #remappings = [("/tf", "tf"), ("/tf_static", "tf_static"), ("/map", "map")]
+        
+
+        # explore_node = Node(
+        #     package="explore_lite",
+        #     name="explore_node",
+        #     namespace=['robot_', str(i)],
+        #     executable="explore",
+        #     parameters=[config, {"use_sim_time": True}],
+        #     output="screen",
+        #     remappings=remappings,
+        #     # arguments=['--ros-args', '--log-level', 'DEBUG' ]
+        # )
+        # ld.add_action(explore_node)
 
     return ld
